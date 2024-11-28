@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Home</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f4f4f4;
+    }
+    .status-container {
+      text-align: center;
+      padding: 20px;
+      border-radius: 8px;
+      background: white;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    .status-text {
+      font-size: 20px;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+    .success {
+      color: green;
+    }
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+<div class="status-container">
+  <h2>Server Status</h2>
+  <p id="status" class="status-text">Checking server status...</p>
+</div>
+
+<script>
+  function checkServerStatus() {
+    const statusElement = document.getElementById("status");
+    const startTime = Date.now();
+
+    // Fetch 설정
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10초 후 요청 중단
+
+    fetch("/ping", { method: "GET", signal: controller.signal })
+            .then(response => {
+              if (response.ok) {
+                const endTime = Date.now();
+                const responseTime = endTime - startTime; // 응답 시간 계산
+                statusElement.textContent = `서버와 연결이 원활해요! ${responseTime}ms`;
+                statusElement.className = "status-text success";
+              } else {
+                throw new Error("서버 오류");
+              }
+            })
+            .catch(error => {
+              statusElement.textContent = "서버와 연결이 끊겼어요!";
+              statusElement.className = "status-text error";
+            })
+            .finally(() => {
+              clearTimeout(timeoutId); // 타임아웃 해제
+            });
+  }
+
+  // 페이지 로드 시 상태 확인
+  window.onload = checkServerStatus;
+</script>
+</body>
+</html>
